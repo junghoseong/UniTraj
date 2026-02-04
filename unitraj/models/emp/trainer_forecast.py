@@ -12,7 +12,7 @@ from .emp import EMP
 from unitraj.models.base_model.base_model import BaseModel
 #from src.metrics import MR, brierMinFDE, minADE, minFDE
 from .optim import WarmupCosLR
-from utils.submission_av2 import SubmissionAv2
+from unitraj.utils.submission_av2 import SubmissionAv2
 
 
 torch.set_printoptions(sci_mode=False)

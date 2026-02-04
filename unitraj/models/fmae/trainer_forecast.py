@@ -9,7 +9,7 @@ from torchmetrics import MetricCollection
 
 #from src.metrics import MR, minADE, minFDE
 from .optim import WarmupCosLR
-from utils.submission_av2 import SubmissionAv2
+from unitraj.utils.submission_av2 import SubmissionAv2
 
 from .model_forecast import ModelForecast
 from unitraj.models.base_model.base_model import BaseModel

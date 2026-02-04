@@ -4,7 +4,10 @@ from unitraj.models.wayformer.wayformer import Wayformer
 from unitraj.models.fmae.trainer_mae import TrainerMAE
 from unitraj.models.fmae.trainer_forecast import TrainerForecast
 from unitraj.models.emp.trainer_forecast import TrainerEMP
-from unitraj.models.smart.smart import SMART
+try:
+    from unitraj.models.smart.smart import SMART
+except Exception:
+    SMART = None
 
 __all__ = {
     'autobot': AutoBotEgo,

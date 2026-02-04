@@ -150,8 +150,8 @@ class BaseModel(pl.LightningModule):
             for bs_idx in range(batch_dict['batch_size']):
                 single_pred_dict = {
                     'scenario_id': input_dict['scenario_id'][bs_idx],
-                    'pred_trajs': pred_trajs_world[bs_idx, :, :, 0:2].cpu().numpy(),
-                    'pred_scores': pred_scores[bs_idx, :].cpu().numpy(),
+                    'pred_trajs': pred_trajs_world[bs_idx, :, :, 0:2].detach().cpu().numpy(),
+                    'pred_scores': pred_scores[bs_idx, :].detach().cpu().numpy(),
                     'object_id': input_dict['center_objects_id'][bs_idx],
                     'object_type': input_dict['center_objects_type'][bs_idx],
                     'gt_trajs': input_dict['center_gt_trajs_src'][bs_idx].cpu().numpy(),
@@ -185,8 +185,8 @@ class BaseModel(pl.LightningModule):
                 single_pred_dict = {
                     'instance': input_dict['scenario_id'][bs_idx].split('_')[1],
                     'sample': input_dict['scenario_id'][bs_idx].split('_')[2],
-                    'prediction': pred_trajs_world[bs_idx, :, 4::5, 0:2].cpu().numpy(),
-                    'probabilities': pred_scores[bs_idx, :].cpu().numpy(),
+                    'prediction': pred_trajs_world[bs_idx, :, 4::5, 0:2].detach().cpu().numpy(),
+                    'probabilities': pred_scores[bs_idx, :].detach().cpu().numpy(),
                 }
 
                 pred_dict_list.append(
@@ -216,8 +216,8 @@ class BaseModel(pl.LightningModule):
             for bs_idx in range(batch_dict['batch_size']):
                 single_pred_dict = {
                     'scenario_id': input_dict['scenario_id'][bs_idx],
-                    'pred_trajs': pred_trajs_world[bs_idx, :, :, 0:2].cpu().numpy(),
-                    'pred_scores': pred_scores[bs_idx, :].cpu().numpy(),
+                    'pred_trajs': pred_trajs_world[bs_idx, :, :, 0:2].detach().cpu().numpy(),
+                    'pred_scores': pred_scores[bs_idx, :].detach().cpu().numpy(),
                     'object_id': input_dict['center_objects_id'][bs_idx],
                     'object_type': input_dict['center_objects_type'][bs_idx],
                     'gt_trajs': input_dict['center_gt_trajs_src'][bs_idx].cpu().numpy(),
@@ -365,6 +365,26 @@ class BaseModel(pl.LightningModule):
         for key, value in input.items():
             if isinstance(value, torch.Tensor):
                     input[key] = input[key].to("cpu")
+
+        # Pad agent dimension if cache was built with smaller max_num_agents (e.g. different method)
+        actual_agents = input["obj_trajs_pos"].shape[1]
+        if actual_agents < N_agent:
+            pad_agents = N_agent - actual_agents
+            input["obj_trajs_pos"] = torch.nn.functional.pad(
+                input["obj_trajs_pos"], (0, 0, 0, 0, 0, pad_agents), value=0
+            )
+            input["obj_trajs_mask"] = torch.nn.functional.pad(
+                input["obj_trajs_mask"], (0, 0, 0, pad_agents), value=False
+            )
+            input["obj_trajs"] = torch.nn.functional.pad(
+                input["obj_trajs"], (0, 0, 0, 0, 0, pad_agents), value=0
+            )
+            input["obj_trajs_future_state"] = torch.nn.functional.pad(
+                input["obj_trajs_future_state"], (0, 0, 0, 0, 0, pad_agents), value=0
+            )
+            input["obj_trajs_future_mask"] = torch.nn.functional.pad(
+                input["obj_trajs_future_mask"], (0, 0, 0, pad_agents), value=False
+            )
 
         data["origin"] = input["center_objects_world"][..., 0:2].clone()
         data["theta"] = input["center_objects_world"][..., 6].clone()
